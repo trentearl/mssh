@@ -880,6 +880,7 @@ dependencies = [
  "async-trait",
  "clap",
  "console",
+ "dirs",
  "emojis",
  "env_logger",
  "futures",

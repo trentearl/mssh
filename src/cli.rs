@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use clap::{Parser, ValueEnum};
+use dirs::home_dir;
 
 use anyhow::Result;
 use russh_keys::key::KeyPair;
@@ -13,7 +14,7 @@ struct Cli {
     commands: Vec<String>,
 
     #[clap(long, short = 'k')]
-    private_key: PathBuf,
+    private_key: Option<PathBuf>,
 
     #[arg(num_args=1..)]
     #[clap(value_parser = parse_host_login)]
@@ -41,7 +42,14 @@ pub struct Args {
 pub fn cli() -> Result<Args> {
     let cli = Cli::parse();
 
-    let key_pair = load_secret_key(cli.private_key, None)?;
+    let home = home_dir().ok_or_else(|| anyhow::anyhow!("No home directory"))?;
+    let private_key_path = cli.private_key.unwrap_or_else(|| {
+        let mut path = home;
+        path.push(".ssh/id_ed25519");
+        path
+    });
+
+    let key_pair = load_secret_key(private_key_path, None)?;
     Ok(Args {
         commands: cli.commands,
         key_pair,

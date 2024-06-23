@@ -18,13 +18,13 @@ pub enum RunError {
     #[error("An error occurred: {0}")]
     GeneralError(String),
 
-    #[error("A different kind of error")]
+    #[error("SSH Connection error: {0}")]
     SshConnectionError(String),
 
-    #[error("An error occurred: {0}")]
+    #[error("SSH Run error: {0}")]
     SshRunError(String, usize),
 
-    #[error("An error occurred: {0}")]
+    #[error("SSH error occurred: {0}")]
     SshCloseError(String),
 }
 
