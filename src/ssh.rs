@@ -4,6 +4,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use russh::{client, ChannelMsg, Disconnect};
 use russh_keys::key::{KeyPair, PublicKey};
+use tokio::time::timeout;
 
 use crate::cli::RemoteHost;
 
@@ -43,7 +44,10 @@ impl Session {
 
         let host = remote_host.host.clone();
         let username = remote_host.username.clone();
-        let mut session = client::connect(config, (host, remote_host.port), sh).await?;
+        let addr = (host, remote_host.port);
+        let timeout_duration = Duration::from_secs(5);
+
+        let mut session = timeout(timeout_duration, client::connect(config, addr, sh)).await??;
 
         let auth_res = session
             .authenticate_publickey(username, Arc::new(key_pair))
