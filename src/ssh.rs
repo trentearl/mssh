@@ -64,17 +64,21 @@ impl Session {
         &self,
         command: &str,
         sudo: &Option<String>,
+        sudo_password: &Option<String>,
     ) -> Result<(String, String, Option<u32>, u64)> {
         let mut channel = self.session.channel_open_session().await?;
         let start_time = std::time::Instant::now();
 
-        match sudo {
-            Some(sudo) => {
-                let sudo_password = std::env::var("SUDO_PASSWORD")?;
-                let command = format!("echo {} | sudo -u {} -S  {}", sudo_password, sudo, command);
+        match (sudo, sudo_password) {
+            (Some(sudo), Some(pass)) => {
+                let command = format!("echo {} | sudo -u {} -S  {}", pass, sudo, command);
                 channel.exec(true, command.as_str()).await?;
             }
-            None => {
+            (Some(sudo), None) => {
+                let command = format!("sudo -u {} {}", sudo, command);
+                channel.exec(true, command.as_str()).await?;
+            }
+            _ => {
                 channel.exec(true, command).await?;
             }
         }

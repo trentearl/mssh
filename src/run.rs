@@ -5,7 +5,7 @@ use crate::cli::Args;
 use crate::{ssh, Responses, RunError};
 use crate::{Response, RunResult};
 
-pub async fn run(args: Args) -> RunResult<Vec<Responses>> {
+pub async fn run(args: Args, pass: Option<String>) -> RunResult<Vec<Responses>> {
     let key_pair = args.key_pair;
     let commands: Vec<String> = args.commands;
 
@@ -15,6 +15,7 @@ pub async fn run(args: Args) -> RunResult<Vec<Responses>> {
         .map(|remote_host| {
             let key_pair = key_pair.clone();
             let commands = commands.clone();
+            let pass = pass.clone();
 
             tokio::spawn(async move {
                 let host = &remote_host.host;
@@ -33,7 +34,7 @@ pub async fn run(args: Args) -> RunResult<Vec<Responses>> {
                 let mut responses: Vec<RunResult<Response>> = Vec::new();
                 for (i, command) in commands.iter().enumerate() {
                     trace!("{:>15}: {:>15} {}", "Run command", host, command);
-                    match ssh.call(command, &remote_host.sudo).await {
+                    match ssh.call(command, &remote_host.sudo, &pass).await {
                         Ok((out, err, code, duration)) => {
                             responses.push(RunResult::Ok(Response {
                                 out,

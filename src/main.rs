@@ -124,9 +124,18 @@ async fn main() -> Result<()> {
         .filter_level(log::LevelFilter::Info)
         .init();
     let args = cli()?;
+    let prompt_pass = args.sudo_prompt_password;
     let output = args.output.clone();
     let term = Term::stdout();
-    let mut all_responses = run(args).await?;
+
+    let mut password = std::env::var("SUDO_PASSWORD").ok();
+    if prompt_pass {
+        eprintln!("Enter the sudo password:");
+        term.write_str("> ")?;
+
+        password = Some(term.read_secure_line()?);
+    }
+    let mut all_responses = run(args, password).await?;
     all_responses.sort_by(|a, b| a.remote_host.host.cmp(&b.remote_host.host));
 
     match output {

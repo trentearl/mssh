@@ -16,6 +16,9 @@ struct Cli {
     #[clap(long, short = 'k')]
     private_key: Option<PathBuf>,
 
+    #[clap(long, short = 'p')]
+    sudo_prompt_password: bool,
+
     #[arg(num_args=1..)]
     #[clap(value_parser = parse_host_login)]
     hosts: Vec<RemoteHost>,
@@ -37,6 +40,7 @@ pub struct Args {
     pub key_pair: KeyPair,
     pub hosts: Vec<RemoteHost>,
     pub output: Output,
+    pub sudo_prompt_password: bool,
 }
 
 pub fn cli() -> Result<Args> {
@@ -51,6 +55,7 @@ pub fn cli() -> Result<Args> {
 
     let key_pair = load_secret_key(private_key_path, None)?;
     Ok(Args {
+        sudo_prompt_password: cli.sudo_prompt_password,
         commands: cli.commands,
         key_pair,
         hosts: cli.hosts,
